@@ -6,9 +6,24 @@
 pool:
   vmImage: 'Ubuntu 16.04'
 
+
 variables:
-  imageName: 'nginx:$(build.buildId)'
+  imageName: 'kthnginx:$(build.buildId)'
+
 
 steps:
-- script: docker build -f Dockerfile -t $(imageName) .
+
+- script: docker build -t $(dockerId)/$(imageName) .
   displayName: 'docker build'
+
+- script: docker login -u $(dockerId) -p $(dockerPassword)
+  displayName: 'docker login'
+  
+- script: docker push $(dockerId)/$(imageName)
+  displayName: 'Push image to public docker hub'
+
+- script: docker image tag $(dockerId)/$(imageName) $(dockerIdKTHSE)/$(imageName)
+  displayName: 'Tag image for push to kth.se internal registry'
+
+- script: docker push $(dockerIdKTHSE)/$(imageName)
+  displayName: 'Push image to kth.se internal registry'
